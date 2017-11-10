@@ -6,6 +6,17 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Eclipse Program Slicer Plugin</name>
 	<description>Computes program slices inside of the Eclipse IDE.</description>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>add_libs</module>
+		<module>sandbox</module>
+		<module>plugin</module>
+	</modules>
+
+	<properties>
+		<tycho-version>1.0.0</tycho-version>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -13,10 +24,22 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.wala</groupId>
+			<artifactId>com.ibm.wala.core</artifactId>
+			<version>1.4.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<extensions>true</extensions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
@@ -75,4 +98,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
