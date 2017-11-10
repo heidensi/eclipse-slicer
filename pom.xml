@@ -11,7 +11,7 @@
 	<modules>
 		<module>add_libs</module>
 		<module>sandbox</module>
-		<module>plugin</module>
+		<!-- <module>plugin</module> -->
 	</modules>
 
 	<properties>
