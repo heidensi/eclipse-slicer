@@ -47,19 +47,6 @@ import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.io.CommandLine;
 import com.ibm.wala.util.strings.Atom;
 
-import edu.kit.joana.api.sdg.SDGConfig;
-import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNodeTuple;
-import edu.kit.joana.ifc.sdg.graph.slicer.SDGSlicer;
-import edu.kit.joana.ifc.sdg.graph.slicer.conc.CFGBackward;
-import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
-import edu.kit.joana.util.Stubs;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
 public class SlicerTest {
 
@@ -96,18 +83,11 @@ public class SlicerTest {
 
 	public static CallGraphBuilder<InstanceKey> doSlicing(String appJar) throws WalaException, IOException, IllegalArgumentException, CancelException {
 		// create an analysis scope representing the appJar as a J2SE application
+//		ClassLoader cl = ClassLoader.getSystemClassLoader();
+//		AnalysisScope scope = AnalysisScopeReader.readJavaScope("scope.txt",new File("exclusions.txt") , cl);
+		
 		AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar, new File("exclusions.txt"));
-//		String exclusionFile = p.getProperty("exclusions");
-		//		  AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar, exclusionFile != null ? new File(exclusionFile)
-		/* format:
-			java\/awt\/.*
-			javax\/swing\/.*
-			sun\/awt\/.*
-			sun\/swing\/.*
-			com\/sun\/.*
-			sun\/.*
-		 */
-		System.out.println("cha");
+				System.out.println("cha");
 		ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
 		System.out.println("entrypoints");
@@ -203,23 +183,25 @@ public class SlicerTest {
 		return null;
 	}
 
+
 	public static void dumpSlice(Collection<Statement> slice) {
 		for (Statement s : slice) {
-			System.err.println(s);
+//			System.err.println(s);
 			if (s.getKind() == Statement.Kind.NORMAL) { // ignore special kinds of statements
 				  int bcIndex, instructionIndex = ((NormalStatement) s).getInstructionIndex();
 				  try {
 				    bcIndex = ((ShrikeBTMethod) s.getNode().getMethod()).getBytecodeIndex(instructionIndex);
 				    try {
 				      int src_line_number = s.getNode().getMethod().getLineNumber(bcIndex);
-				      System.err.println ( "Source line number = " + src_line_number );
+				      System.out.print(s.getNode().getMethod().getSignature());
+				      System.out.println ( "Source line number = " + src_line_number );
 				    } catch (Exception e) {
-				      System.err.println("Bytecode index no good");
-				      System.err.println(e.getMessage());
+//				      System.err.println("Bytecode index no good");
+//				      System.err.println(e.getMessage());
 				    }
 				  } catch (Exception e ) {
-				    System.err.println("it's probably not a BT method (e.g. it's a fakeroot method)");
-				    System.err.println(e.getMessage());
+//				    System.err.println("it's probably not a BT method (e.g. it's a fakeroot method)");
+//				    System.err.println(e.getMessage());
 				  }
 				}
 			
