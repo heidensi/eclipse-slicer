@@ -9,11 +9,4 @@
 	<artifactId>sandbox</artifactId>
 	<name>SandBox</name>
 
-	<dependencies>
-		<dependency>
-			<groupId>se.de.hu_berlin.informatik</groupId>
-			<artifactId>add_libs-joana.api.jar</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
 </project>

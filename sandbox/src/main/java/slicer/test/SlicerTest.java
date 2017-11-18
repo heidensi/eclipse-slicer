@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.ibm.wala.classLoader.ShrikeBTMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
@@ -27,6 +28,7 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXInstanceKeys;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
+import com.ibm.wala.ipa.slicer.NormalStatement;
 import com.ibm.wala.ipa.slicer.Slicer;
 import com.ibm.wala.ipa.slicer.Statement;
 import com.ibm.wala.ipa.slicer.Slicer.ControlDependenceOptions;
@@ -68,29 +70,9 @@ public class SlicerTest {
 		
 		
 		
-//		CommandLine.parse(args);
-//		try {
-//			doSlicing(Paths.get("HelloWorld.jar").toAbsolutePath().toString());
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (CancelException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (ClassHierarchyException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IllegalArgumentException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (WalaException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-		
+		CommandLine.parse(args);
 		try {
-			doSlicingNew(Paths.get("HelloWorld2.jar").toAbsolutePath().toString());
+			doSlicing(Paths.get("HelloWorld.jar").toAbsolutePath().toString());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -103,108 +85,15 @@ public class SlicerTest {
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (UnsoundGraphException e) {
+		} catch (WalaException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+
 	}
 
-	public static void doSlicingNew(String appJar) throws UnsoundGraphException, ClassHierarchyException, IOException, CancelException {
-		/** the class path is either a directory or a jar containing all the classes of the program which you want to analyze */
-		String classPath = appJar;
-		
-		/** the entry method is the main method which starts the program you want to analyze */
-		JavaMethodSignature entryMethod = JavaMethodSignature.mainMethodOfClass("HelloWorld.HelloWorld");
-		
-		/** For multi-threaded programs, it is currently neccessary to use the jdk 1.4 stubs */
-		SDGConfig config = new SDGConfig(classPath, entryMethod.toBCString(), Stubs.JRE_14);
-		
-		/** compute interference edges to model dependencies between threads (set to false if your program does not use threads) */
-		config.setComputeInterferences(false);
-		
-		/** additional MHP analysis to prune interference edges (does not matter for programs without multiple threads) */
-		config.setMhpType(MHPType.PRECISE);
-		
-		/** precision of the used points-to analysis - INSTANCE_BASED is a good value for simple examples */
-		config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED);
-		
-		/** exception analysis is used to detect exceptional control-flow which cannot happen */
-		config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC);
-		
-		/** build the PDG */
-		SDGProgram program = SDGProgram.createSDGProgram(config, System.out, new NullProgressMonitor());
-		
-//		/** optional: save PDG to disk */
-//		SDGSerializer.toPDGFormat(program.getSDG(), new FileOutputStream("yourSDGFile.pdg"));
-		
-//		IFCAnalysis ana = new IFCAnalysis(program);
-//		/** annotate sources and sinks */
-//		// for example: fields
-//		ana.addSourceAnnotation(program.getPart("HelloWorld.HelloWorld.x"), BuiltinLattices.STD_SECLEVEL_HIGH);
-//		ana.addSinkAnnotation(program.getPart("HelloWorld.HelloWorld.y"), BuiltinLattices.STD_SECLEVEL_LOW);
-//		
-//		/** run the analysis */
-//		Collection<? extends IViolation<SecurityNode>> result = ana.doIFC();
-//		TObjectIntMap<IViolation<SDGProgramPart>> resultByProgramPart = ana.groupByPPPart(result);
-//		/** do something with result */
-//		for (IViolation<SDGProgramPart> vio : resultByProgramPart.keySet()) {
-//			System.out.println(vio);
-//		}
-
-		List<SDGNodeTuple> allCallSites = program.getSDG()
-				.getAllCallSites();
-		for (SDGNodeTuple sdgNodeTuple : allCallSites) {
-			System.out.println("primeiro: "
-					+ sdgNodeTuple.getFirstNode().getBytecodeName() + " " + sdgNodeTuple.getFirstNode().getEr()
-					+ " segundo: "
-					+ sdgNodeTuple.getSecondNode().getBytecodeName() + " " + + sdgNodeTuple.getSecondNode().getEr());
-		}
-
-		System.out.println(program.getMethodParameter(JavaMethodSignature.fromString("java.io.PrintStream.println(Ljava/lang/String;)V"),0));
-//		System.out.println(program.getClasses());
-		System.out.println(program.getAllMethods());
-		System.out.println(program.getAllProgramParts());
-		System.out.println(program.getCallsToMethod(JavaMethodSignature.fromString("java.io.PrintStream.println(Ljava/lang/String;)V")));
-		SDG g = program.getSDG();
-		SDGNode c = g.getNode(36);
-//		System.out.println(g.toString());
-		Slicer slicer = new Slicer();
-		Collection<SDGNode> slice = new CFGBackward(g).slice(c);
-		System.out.println(slice);
-		for (SDGNode node : slice) {
-			System.out.println("* " + node.getBytecodeName());
-		}
-		System.out.println(new SDGSlicer(g, Collections.singleton(c)).slice());
-		
-		
-		Collection<SDGProgramPart> parts = program.getAllProgramParts();
-		for (SDGProgramPart part : parts) {
-			System.out.println("+ " + part.toString());
-		}
-		
-		
-//		// find seed statement
-//		Statement statement = findCallTo(findMainMethod(cg), "println");
-//
-//		Collection<Statement> slice;
-//
-//		// context-sensitive traditional slice
-//		slice = Slicer.computeBackwardSlice ( statement, cg, pa );
-//		dumpSlice(slice);
-//
-//		// context-sensitive thin slice
-//		slice = Slicer.computeBackwardSlice(statement, cg, pa, DataDependenceOptions.NO_BASE_PTRS,
-//				ControlDependenceOptions.NONE);
-//		dumpSlice(slice);
-//
-//		// context-insensitive slice
-//		ThinSlicer ts = new ThinSlicer(cg,pa);
-//		slice = ts.computeBackwardThinSlice ( statement );
-//		dumpSlice(slice);
-//		
-//		return cgb;
-	}
-	
 	public static CallGraphBuilder<InstanceKey> doSlicing(String appJar) throws WalaException, IOException, IllegalArgumentException, CancelException {
 		// create an analysis scope representing the appJar as a J2SE application
 		AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar, new File("exclusions.txt"));
@@ -317,6 +206,23 @@ public class SlicerTest {
 	public static void dumpSlice(Collection<Statement> slice) {
 		for (Statement s : slice) {
 			System.err.println(s);
+			if (s.getKind() == Statement.Kind.NORMAL) { // ignore special kinds of statements
+				  int bcIndex, instructionIndex = ((NormalStatement) s).getInstructionIndex();
+				  try {
+				    bcIndex = ((ShrikeBTMethod) s.getNode().getMethod()).getBytecodeIndex(instructionIndex);
+				    try {
+				      int src_line_number = s.getNode().getMethod().getLineNumber(bcIndex);
+				      System.err.println ( "Source line number = " + src_line_number );
+				    } catch (Exception e) {
+				      System.err.println("Bytecode index no good");
+				      System.err.println(e.getMessage());
+				    }
+				  } catch (Exception e ) {
+				    System.err.println("it's probably not a BT method (e.g. it's a fakeroot method)");
+				    System.err.println(e.getMessage());
+				  }
+				}
+			
 		}
 	}
 	
